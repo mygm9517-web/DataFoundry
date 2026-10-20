@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  datafoundry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: datafoundry
+    ports:
+      - "3001:3000"
+      - "8787:8787"
+    volumes:
+      - ./storage:/app/storage
+      - ./.env:/app/.env
+    environment:
+      - NODE_ENV=production
+      - STORAGE_ROOT_DIR=/app/storage
+      - METADATA_DB_PATH=/app/storage/metadata/workbench.sqlite
+      - MASTRA_STORAGE_PATH=/app/storage/mastra/agent-state.sqlite
+      - BIGSCREEN_UPLOAD_ROOT=/app/storage/bigscreen
+      - BIGSCREEN_ROOT=/app/apps/web/bigscreen
+      - API_HOST=0.0.0.0
+      - API_PORT=8787
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=3000
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8787/healthz"]
+      interval: 30s
+      timeout: 3s
+      start_period: 40s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - datafoundry-network
+
+networks:
+  datafoundry-network:
+    driver: bridge
